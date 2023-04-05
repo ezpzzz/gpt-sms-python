@@ -1,33 +1,19 @@
-from flask import Flask, request
-
+from flask import Flask, request, session
 from twilio.twiml.messaging_response import MessagingResponse
-
-import os
-
-import openai
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
+from chatbot import askgpt
 
 app = Flask(__name__)
-@app.route("/sms", methods=['POST'])
-def chatgpt():
-    inb_msg = request.form['Body'].lower()
-
-    print(inb_msg)
-
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=inb_msg,
-        max_tokens=2000,
-        temperature=0.7,
-    )
-
-    resp = MessagingResponse()
-    resp.message(response["choices"][0]["text"])
+app.config['SECRET_KEY'] = 'top-secret!'
 
 
-    return str(resp)
+@app.route('/sms', methods=['POST'])
+def bot():
+    incoming_msg = request.values['Body']
+    chat_log = session.get('chat_log')
 
+    answer, chat_log = askgpt(incoming_msg, chat_log)
+    session['chat_log'] = chat_log
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    r = MessagingResponse()
+    r.message(answer)
+    return str(r)
