@@ -1,2 +1,1 @@
-# gpt-sms
-# gpt-sms
+# gpt-sms-python
